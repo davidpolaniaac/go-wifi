@@ -3,6 +3,8 @@ package com.olimpo.gowifi.gowifi;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,8 +16,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import com.loopj.android.http.*;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import cz.msebera.android.httpclient.Header;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private List<Wifi> wifiList;
+    private RecyclerView recList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +37,15 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        wifiList = new ArrayList<>();
+        recList = (RecyclerView) findViewById(R.id.cardList);
+        recList.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recList.setLayoutManager(llm);
+
+        createList();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -41,6 +64,51 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void createList() {
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get("https://www.datos.gov.co/resource/4ai7-uijz.json", new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+                if (statusCode==200){
+
+                    try {
+                        JSONArray jsonArray = new JSONArray(new String(responseBody));
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            String barrio = jsonObject.optString("barrio");
+                            int comuna = jsonObject.getInt("comuna");
+                            String direccion = jsonObject.optString("direcci_n");
+                            String nombreComuna = jsonObject.optString("nombre_comuna");
+                            String nombreSitio = jsonObject.optString("nombre_del_sitio");
+                            JSONObject coordenada = jsonObject.getJSONObject("latitud_y");
+                            JSONArray coordinates = coordenada.getJSONArray("coordinates");
+                            double latitud = (double) coordinates.get(0);
+                            double longitud= (double)coordinates.get(1);
+
+
+                            wifiList.add(new Wifi(barrio,comuna,direccion,new Coordenadas(latitud,longitud),nombreComuna,nombreSitio));
+
+                        }
+
+                        WifiAdapter wifiAdapter = new WifiAdapter(wifiList);
+                        recList.setAdapter(wifiAdapter);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+
+            }
+        });
     }
 
     @Override
