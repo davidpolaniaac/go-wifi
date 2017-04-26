@@ -34,11 +34,11 @@ public class WifiAdapter extends RecyclerView.Adapter<WifiAdapter.WifiViewHolder
     public void onBindViewHolder(final WifiViewHolder holder, int position) {
         final Wifi wifiInfo = wifiList.get(position);
         holder.vBarrio.setText(wifiInfo.getBarrio());
-        holder.vComuna.setText(wifiInfo.getComuna());
+        holder.vComuna.setText(wifiInfo.getComuna()+"");
         holder.vDireccion.setText(wifiInfo.getDireccion());
         holder.vNombreComuna.setText(wifiInfo.getNombreComuna());
         holder.vNombreSitio.setText(wifiInfo.getNombreSitio());
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+/*        holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
@@ -49,7 +49,7 @@ public class WifiAdapter extends RecyclerView.Adapter<WifiAdapter.WifiViewHolder
                 intent.putExtra("longitud", longitud);
                 view.getContext().startActivity(intent);
             }
-        });
+        });*/
     }
 
     @Override

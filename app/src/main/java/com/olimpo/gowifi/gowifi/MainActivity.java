@@ -5,6 +5,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity
     private void createList() {
 
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get("https://www.datos.gov.co/resource/4ai7-uijz.json", new AsyncHttpResponseHandler() {
+        client.get("http://www.datos.gov.co/resource/4ai7-uijz.json", new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity
                     try {
                         JSONArray jsonArray = new JSONArray(new String(responseBody));
 
-                        for (int i = 0; i < jsonArray.length(); i++) {
+                        for (int i = 0; i < 10; i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
                             String barrio = jsonObject.optString("barrio");
                             int comuna = jsonObject.getInt("comuna");
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity
                             double latitud = (double) coordinates.get(0);
                             double longitud= (double)coordinates.get(1);
 
-
+                            Log.e("asdasd",""+jsonObject);
                             wifiList.add(new Wifi(barrio,comuna,direccion,new Coordenadas(latitud,longitud),nombreComuna,nombreSitio));
 
                         }
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-
+                Log.e("Code Error",""+statusCode);
             }
         });
     }
