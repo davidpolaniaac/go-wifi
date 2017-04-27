@@ -87,8 +87,8 @@ public class MainActivity extends AppCompatActivity
                             String nombreComuna = jsonObject.optString("nombre_comuna");
                             String nombreSitio = jsonObject.optString("nombre_del_sitio");
 
-                            double latitud=6.2518400;
-                            double longitud=-75.5635900;
+                            double longitud=0;
+                            double latitud=0;
 
                             if(!jsonObject.isNull("latitud_y")){
 

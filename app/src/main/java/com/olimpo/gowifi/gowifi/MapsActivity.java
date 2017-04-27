@@ -1,11 +1,13 @@
 package com.olimpo.gowifi.gowifi;
 
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,6 +44,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             latitud =(double) bundle.get("latitud");
             longitud =(double) bundle.get("longitud");
             sitio=(String) bundle.get("sitio");
+            if(latitud == 0 && latitud == 0) {
+                Toast.makeText(getApplicationContext(),"Punto de acceso sin coordenadas, proximante .. :(", Toast.LENGTH_LONG).show();
+            }
         }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -53,7 +58,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         LatLng sydney = new LatLng(longitud,latitud);
         mMap.addMarker(new MarkerOptions().position(sydney).title(sitio));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
