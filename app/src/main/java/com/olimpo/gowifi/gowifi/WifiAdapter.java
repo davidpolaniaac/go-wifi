@@ -21,6 +21,17 @@ public class WifiAdapter extends RecyclerView.Adapter<WifiAdapter.WifiViewHolder
         this.wifiList = wifiList;
     }
 
+    public void addAll(List<Wifi> lista){
+        wifiList.addAll(lista);
+        notifyDataSetChanged();
+    }
+
+    public void clear(){
+        wifiList.clear();
+        notifyDataSetChanged();
+    }
+
+
     @Override
     public WifiViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.
@@ -34,11 +45,12 @@ public class WifiAdapter extends RecyclerView.Adapter<WifiAdapter.WifiViewHolder
     public void onBindViewHolder(final WifiViewHolder holder, int position) {
         final Wifi wifiInfo = wifiList.get(position);
         holder.vBarrio.setText(wifiInfo.getBarrio());
-        holder.vComuna.setText(wifiInfo.getComuna()+"");
-        holder.vDireccion.setText(wifiInfo.getDireccion());
-        holder.vNombreComuna.setText(wifiInfo.getNombreComuna());
-        holder.vNombreSitio.setText(wifiInfo.getNombreSitio());
-/*        holder.itemView.setOnClickListener(new View.OnClickListener() {
+        holder.vComuna.setText("Comuna : "+ wifiInfo.getComuna()+"");
+        holder.vDireccion.setText("Direccion : "+wifiInfo.getDireccion());
+        holder.vNombreComuna.setText("Nombre comuna : "+wifiInfo.getNombreComuna());
+        holder.vNombreSitio.setText("Lugar : "+wifiInfo.getNombreSitio());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
@@ -47,9 +59,10 @@ public class WifiAdapter extends RecyclerView.Adapter<WifiAdapter.WifiViewHolder
                 double longitud = wifiInfo.getCoordenadas().getLongitud();
                 intent.putExtra("latitud", latitud);
                 intent.putExtra("longitud", longitud);
+                intent.putExtra("sitio",wifiInfo.getNombreSitio());
                 view.getContext().startActivity(intent);
             }
-        });*/
+        });
     }
 
     @Override

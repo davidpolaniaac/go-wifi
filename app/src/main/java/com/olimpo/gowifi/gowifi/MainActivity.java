@@ -1,20 +1,22 @@
 package com.olimpo.gowifi.gowifi;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.View;
+import android.text.InputType;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.Toast;
+
 import com.loopj.android.http.*;
 
 import org.json.JSONArray;
@@ -31,6 +33,8 @@ public class MainActivity extends AppCompatActivity
 
     private List<Wifi> wifiList;
     private RecyclerView recList;
+    private WifiAdapter wifiAdapter;
+    private String filtro;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,22 +44,14 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         wifiList = new ArrayList<>();
+        wifiAdapter = new WifiAdapter(wifiList);
         recList = (RecyclerView) findViewById(R.id.cardList);
         recList.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recList.setLayoutManager(llm);
 
-        createList();
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        createList("");
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -67,10 +63,13 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
-    private void createList() {
+    private void createList(String filtro) {
 
+
+        String url= "http://www.datos.gov.co/resource/4ai7-uijz.json"+filtro;
+        wifiAdapter.clear();
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get("http://www.datos.gov.co/resource/4ai7-uijz.json", new AsyncHttpResponseHandler() {
+        client.get(url, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
@@ -79,25 +78,34 @@ public class MainActivity extends AppCompatActivity
                     try {
                         JSONArray jsonArray = new JSONArray(new String(responseBody));
 
-                        for (int i = 0; i < 10; i++) {
+                        for (int i = 0; i < jsonArray.length(); i++) {
+
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
                             String barrio = jsonObject.optString("barrio");
                             int comuna = jsonObject.getInt("comuna");
                             String direccion = jsonObject.optString("direcci_n");
                             String nombreComuna = jsonObject.optString("nombre_comuna");
                             String nombreSitio = jsonObject.optString("nombre_del_sitio");
-                            JSONObject coordenada = jsonObject.getJSONObject("latitud_y");
-                            JSONArray coordinates = coordenada.getJSONArray("coordinates");
-                            double latitud = (double) coordinates.get(0);
-                            double longitud= (double)coordinates.get(1);
 
-                            Log.e("asdasd",""+jsonObject);
+                            double latitud=6.2518400;
+                            double longitud=-75.5635900;
+
+                            if(!jsonObject.isNull("latitud_y")){
+
+                                JSONObject coordenada = jsonObject.getJSONObject("latitud_y");
+                                JSONArray coordinates = coordenada.getJSONArray("coordinates");
+                                latitud = (double) coordinates.get(0);
+                                longitud= (double)coordinates.get(1);
+                            }
+
                             wifiList.add(new Wifi(barrio,comuna,direccion,new Coordenadas(latitud,longitud),nombreComuna,nombreSitio));
 
                         }
 
-                        WifiAdapter wifiAdapter = new WifiAdapter(wifiList);
+                        wifiAdapter = new WifiAdapter(wifiList);
                         recList.setAdapter(wifiAdapter);
+
+
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -107,7 +115,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.e("Code Error",""+statusCode);
+                Toast.makeText(getApplicationContext(),error.toString(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -120,13 +128,6 @@ public class MainActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
     }
 
     @Override
@@ -150,22 +151,50 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        if (id == R.id.nav_comuna) {
+            alert("?comuna=","Comuna",""+1);
+        } else if (id == R.id.nav_barrio) {
+            alert("?barrio=","Barrio","VILLA GUADALUPE");
+        } else if (id == R.id.nav_sitio) {
+            alert("?nombre_del_sitio=","Lugar","Parque de Guadalupe");
+        } else if (id == R.id.nav_direccion) {
+            alert("?direcci_n=","Direccion","Carrera 42B # 95A-23");
+        } else if (id == R.id.nav_borrar) {
+            Snackbar.make(getCurrentFocus(), "Filtro borrado", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            createList("");
 
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    public void alert(String base, String titulo, String ejemplo){
+        final String baseFilter=base;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Filtro por "+titulo);
+        builder.setMessage("Ejemplo : "+ ejemplo);
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                filtro = baseFilter+input.getText().toString();
+                createList(filtro);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 }
